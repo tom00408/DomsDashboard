@@ -1,8 +1,8 @@
 <template>
     <div class="hstack">
       <template v-if="!user">
-        <input v-model="email" placeholder="E-Mail">
-        <input v-model="password" type="password" placeholder="Passwort">
+        <input v-model="email" placeholder="E-Mail" @keydown.enter="login">
+        <input v-model="password" type="password" placeholder="Passwort" @keydown.enter="login">
         <button @click="login">Login</button>
       </template>
       <template v-else>

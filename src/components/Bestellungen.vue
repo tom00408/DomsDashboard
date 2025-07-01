@@ -53,6 +53,7 @@
                             {{ bestellung.bezahlt ? 'Bezahlt' : 'Nicht bezahlt' }}
                         </span>
                     </label>
+                    <button @click="downloadPDF(bestellung)" class="pdf-btn">PDF herunterladen</button>
                     <button @click="deleteBestellung(bestellung.id)" class="delete-btn-new">Löschen</button>
                 </div>
             </div>
@@ -65,6 +66,7 @@ import { ref, onMounted, computed } from 'vue';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import CryptoJS from 'crypto-js';
+import jsPDF from 'jspdf';
 
 const bestellungen = ref([]);
 const encryptionKey = '3a94c345dbc715e7d7974f03fd86ee713cbb7668030dcd6431437f2ac032017c';
@@ -156,6 +158,48 @@ const filteredBestellungen = computed(() => {
     if (activeFilter.value === 'alle') return bestellungen.value;
     return bestellungen.value.filter(b => b.status === activeFilter.value);
 });
+
+function downloadPDF(bestellung) {
+    const doc = new jsPDF();
+    let y = 15;
+    doc.setFontSize(18);
+    doc.text('Bestellung', 10, y);
+    y += 10;
+    doc.setFontSize(12);
+    doc.text(`Bestellnummer: ${bestellung.id}`, 10, y);
+    y += 8;
+    doc.text(`Status: ${bestellung.status}`, 10, y);
+    y += 8;
+    doc.text(`Kunde: ${bestellung.name}`, 10, y);
+    y += 8;
+    doc.text(`Email: ${bestellung.email}`, 10, y);
+    y += 8;
+    doc.text(`Team: ${bestellung.team}`, 10, y);
+    y += 8;
+    doc.text(`Datum: ${formatDate(bestellung.createdAt.toDate())}`, 10, y);
+    y += 8;
+    doc.text(`Adresse: ${bestellung.address}`, 10, y);
+    y += 8;
+    doc.text(`Menge: ${getTotalItems(bestellung)}`, 10, y);
+    y += 8;
+    doc.text(`Preis: ${formatPrice(bestellung.total)} €`, 10, y);
+    y += 12;
+    doc.setFontSize(14);
+    doc.text('Artikel:', 10, y);
+    y += 8;
+    doc.setFontSize(12);
+    bestellung.items.forEach((item, idx) => {
+        doc.text(`- ${item.name} (${item.size}), Menge: ${item.quantity}, Einzelpreis: ${formatPrice(item.price)} €`, 12, y);
+        y += 7;
+        if (item.customName) { doc.text(`  CustomName: ${item.customName}`, 16, y); y += 6; }
+        if (item.customNumber) { doc.text(`  CustomNumber: ${item.customNumber}`, 16, y); y += 6; }
+        if (item.customInitials) { doc.text(`  CustomInitials: ${item.customInitials}`, 16, y); y += 6; }
+    });
+    y += 6;
+    doc.setFontSize(12);
+    doc.text(`Bezahlt: ${bestellung.bezahlt ? 'Ja' : 'Nein'}`, 10, y);
+    doc.save(`Bestellung_${bestellung.id}.pdf`);
+}
 
 onMounted(() => {
     loadBestellungen();
@@ -326,20 +370,104 @@ h2 {
     font-size: 0.95em;
     margin-top: 2px;
 }
+.pdf-btn {
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: none;
+    background: #1976d2;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.pdf-btn:hover {
+    background: #0d47a1;
+}
 @media (max-width: 700px) {
     .bestellungen-container-new {
-        padding: 10px 2px;
+        padding: 6px 0;
         border-width: 2px;
+        max-width: 100vw;
+    }
+    h2 {
+        font-size: 1.3em;
+        margin-bottom: 18px;
+    }
+    .filter-tabs {
+        gap: 4px;
+        margin-bottom: 12px;
+    }
+    .filter-tab {
+        padding: 6px 10px;
+        font-size: 0.98em;
+    }
+    .keine-bestellungen-new {
+        padding: 16px;
+        font-size: 1em;
+        margin-bottom: 10px;
+    }
+    .bestellungen-list-new {
+        gap: 10px;
+    }
+    .bestellung-card {
+        padding: 8px 2px 8px 2px;
+        border-radius: 10px;
+        gap: 7px;
+    }
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        margin-bottom: 2px;
+    }
+    .status-dropdown select {
+        font-size: 0.98em;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+    .bestell-id {
+        font-size: 0.98em;
     }
     .card-details {
         grid-template-columns: 1fr;
-        gap: 6px 0;
+        gap: 4px 0;
+        font-size: 0.98em;
     }
-    .bestellungen-list-new {
-        gap: 16px;
+    .card-items {
+        padding: 6px;
+        font-size: 0.97em;
     }
-    .bestellung-card {
-        padding: 12px 6px 10px 6px;
+    .item-row-new {
+        gap: 8px;
+        padding: 4px 0;
+    }
+    .item-image-new {
+        width: 36px;
+        height: 36px;
+    }
+    .item-info-new {
+        font-size: 0.95em;
+    }
+    .card-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 7px;
+        margin-top: 4px;
+    }
+    .custom-checkbox {
+        font-size: 0.98em;
+        gap: 4px;
+    }
+    .pdf-btn, .delete-btn-new {
+        width: 100%;
+        font-size: 0.98em;
+        padding: 7px 0;
+    }
+    .bezahlt-badge {
+        font-size: 0.95em;
+        padding: 2px 8px;
+        margin-left: 4px;
     }
 }
 .bestellung-card.status-neu {

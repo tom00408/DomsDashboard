@@ -6,6 +6,7 @@
 					<p>{{ antrag.vorname }} {{ antrag.nachname }}</p>
 				</div>
 				<p>{{ antrag.email }}</p>
+                <p>{{ antrag.telefon }}</p>
 				<p>{{ antrag.abteilung }}</p>
                 <p>{{ antrag.kinderAngemeldet ?  `${antrag.kinderAngemeldet}👶` : '' }}{{ antrag.kinderAngemeldet && antrag.partnerAngemeldet ? '|' : '' }} {{ antrag.partnerAngemeldet ? '👩‍❤️‍👨' : '' }}    {{ antrag.gehörtZu ? antrag.gehörtZu : '' }}</p>
 			</div>
