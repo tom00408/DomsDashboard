@@ -189,10 +189,10 @@ const exportCSV = () => {
 	transition: background 0.2s;
 }
 .tabelle-container.selected {
-	background-color: yellow;
+	background-color: rgb(255, 255, 132);
 }
 .tabelle-container.new {
-	background-color: blue; /* hellblau */
+	background-color: #70f3ff; /* hellblau */
 }
 .tabelle-container.archived {
 	background-color: #f5f5f5; /* hellgrau */

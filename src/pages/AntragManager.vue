@@ -6,5 +6,5 @@
 </template>
 
 <script setup>
-import Table from './Table.vue';
+import Table from '../components/Table.vue';
 </script>

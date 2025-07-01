@@ -4,10 +4,7 @@
 
         <div v-if="user" class="content-wrapper">
             <div v-if="currentPage === 'dashboard'" class="dashboard-grid">
-                <Table status="selected"></Table>
-                <Table status="new"></Table>
-                <Table status="archived"></Table>
-                <Table status="rest"></Table>
+                <AntragManager />
             </div>
             <div v-else-if="currentPage === 'bestellungen'" class="bestellungen-wrapper">
                 <Bestellungen />
@@ -23,9 +20,9 @@
 </template>
 
 <script setup>
-import Table from './components/Table.vue';
-import Bestellungen from './components/Bestellungen.vue';
-import Produkte from './components/Produkte.vue';
+import AntragManager from './pages/AntragManager.vue';
+import Bestellungen from './pages/Bestellungen.vue';
+import Produkte from './pages/Produkte.vue';
 import HeaderBar from './components/HeaderBar.vue';
 import { ref } from 'vue';
 import { user } from './authState';

@@ -27,7 +27,7 @@ const props = defineProps({
   currentPage: String
 });
 const navItems = [
-  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'dashboard', label: 'Mitgliedsanträge' },
   { key: 'bestellungen', label: 'Bestellungen' },
   { key: 'produkte', label: 'Produkte' }
 ];
