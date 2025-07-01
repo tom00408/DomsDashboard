@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node deploy.js "
   },
   "dependencies": {
     "crypto-js": "^4.2.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
+    "ssh2-sftp-client": "^12.0.1",
     "vite": "^6.2.0"
   }
 }
