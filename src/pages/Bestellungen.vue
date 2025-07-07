@@ -81,7 +81,8 @@ import CryptoJS from 'crypto-js';
 import jsPDF from 'jspdf';
 
 const bestellungen = ref([]);
-const encryptionKey = '3a94c345dbc715e7d7974f03fd86ee713cbb7668030dcd6431437f2ac032017c';
+const encryptionKey = import.meta.env.VITE_CRYPTO_KEY;
+
 
 const decryptData = (encryptedData) => {
     try {
@@ -105,7 +106,7 @@ const loadBestellungen = async () => {
                 team: data.team ? decryptData(data.team) : '',
                 address: data.address ? decryptData(data.address) : '',
                 email: data.email ? decryptData(data.email) : '',
-                telefonx: data.telefon ? decryptData(data.telefon) : ''
+                telefon: data.telefon ? decryptData(data.telefon) : ''
             };
         });
     } catch (error) {

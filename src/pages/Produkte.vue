@@ -24,7 +24,17 @@
 
     <!-- Produktliste -->
     <div class="produkt-liste">
+
+      <div v-if="isLoading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Lade Produkte...</div>
+      </div>
+      
+
       <div v-for="produkt in produkte" :key="produkt.id" class="produkt-item">
+        
+
+
         <div class="image-container">
           <img v-if="produkt.imageUrl" :src="produkt.imageUrl" alt="Bild" class="produkt-image" @error="handleImageError" />
           <div v-else class="produkt-image-placeholder">Kein Bild</div>
@@ -78,6 +88,7 @@ const produkte = ref([]);
 const showAddForm = ref(false);
 const editForm = ref(false);
 const editProductData = ref({});
+const isLoading = ref(false);
 
 const newProduct = ref({
   name: '',
@@ -95,6 +106,7 @@ const loadProdukte = async () => {
 
   // Für jedes Produkt die Download-URL laden, falls imagepath vorhanden
   for (const produkt of produktArr) {
+    isLoading.value = true;
     if (produkt.imagepath) {
       produkt.imageUrl = await getImageUrl(produkt.imagepath);
     } else {
@@ -102,6 +114,7 @@ const loadProdukte = async () => {
     }
   }
   produkte.value = produktArr;
+  isLoading.value = false;
 };
 
 // Funktion zum Generieren der Download-URL für ein Bild
@@ -388,4 +401,35 @@ onMounted(() => {
   background: #f3f3f3;
   font-size: 0.95em;
 }
+
+
+.loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+          padding: 2rem;
+        }
+        .loading-spinner {
+          width: 50px;
+          height: 50px;
+          border: 5px solid #f3f3f3;
+          border-top: 5px solid #3498db;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        .loading-text {
+          font-size: 1.2rem;
+          color: #666;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
+        }
 </style> 
