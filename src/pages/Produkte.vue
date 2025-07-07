@@ -11,7 +11,8 @@
     <form v-if="showAddForm" @submit.prevent="addProduct" class="produkt-form">
       <input v-model="newProduct.name" placeholder="Produktname" required />
       <input v-model="newProduct.price" type="number" placeholder="Preis" required />
-      <input v-model="newProduct.imagepath" placeholder="Bildpfad (URL)" />
+      <input v-model="newProduct.imagepath" placeholder="Bildpfad (URL) oder Datei auswählen" />
+      <input type="file" @change="handleImageUpload" accept="image/*" />
       <input v-model="newProduct.sizes" placeholder="Größen (Komma-getrennt)" />
       <div class="checkbox-row">
         <label class="custom-checkbox"><input type="checkbox" v-model="newProduct.hasName" /><span>Hat Name</span></label>
@@ -24,7 +25,10 @@
     <!-- Produktliste -->
     <div class="produkt-liste">
       <div v-for="produkt in produkte" :key="produkt.id" class="produkt-item">
-        <img v-if="produkt.imagepath" :src="produkt.imagepath" alt="Bild" class="produkt-image" />
+        <div class="image-container">
+          <img v-if="produkt.imageUrl" :src="produkt.imageUrl" alt="Bild" class="produkt-image" @error="handleImageError" />
+          <div v-else class="produkt-image-placeholder">Kein Bild</div>
+        </div>
         <div class="produkt-info">
           <div><strong>{{ produkt.name }}</strong></div>
           <div>Preis: {{ formatPrice(produkt.price) }}€</div>
@@ -50,7 +54,8 @@
       <h3>Produkt bearbeiten</h3>
       <input v-model="editProductData.name" placeholder="Produktname" required />
       <input v-model="editProductData.price" type="number" placeholder="Preis" required />
-      <input v-model="editProductData.imagepath" placeholder="Bildpfad (URL)" />
+      <input v-model="editProductData.imagepath" placeholder="Bildpfad (URL) oder Datei auswählen" />
+      <input type="file" @change="handleEditImageUpload" accept="image/*" />
       <input v-model="editProductData.sizes" placeholder="Größen (Komma-getrennt)" />
       <div class="checkbox-row">
         <label class="custom-checkbox"><input type="checkbox" v-model="editProductData.hasName" /><span>Hat Name</span></label>
@@ -66,7 +71,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase';
 
 const produkte = ref([]);
 const showAddForm = ref(false);
@@ -85,7 +91,55 @@ const newProduct = ref({
 
 const loadProdukte = async () => {
   const querySnapshot = await getDocs(collection(db, 'products'));
-  produkte.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const produktArr = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Für jedes Produkt die Download-URL laden, falls imagepath vorhanden
+  for (const produkt of produktArr) {
+    if (produkt.imagepath) {
+      produkt.imageUrl = await getImageUrl(produkt.imagepath);
+    } else {
+      produkt.imageUrl = null;
+    }
+  }
+  produkte.value = produktArr;
+};
+
+// Funktion zum Generieren der Download-URL für ein Bild
+const getImageUrl = async (imagePath) => {
+  if (!imagePath) return null;
+  
+  try {
+    // Wenn es bereits eine vollständige URL ist, verwende sie direkt
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // Ansonsten generiere eine Download-URL aus Firebase Storage
+    const imageRef = storageRef(storage, imagePath);
+    const url = await getDownloadURL(imageRef);
+    return url;
+  } catch (error) {
+    console.error('Fehler beim Laden des Bildes:', error);
+    return null;
+  }
+};
+
+// Funktion zum Hochladen eines Bildes
+const uploadImage = async (file) => {
+  if (!file) return null;
+  
+  try {
+    const timestamp = Date.now();
+    const fileName = `products/${timestamp}_${file.name}`;
+    const imageRef = storageRef(storage, fileName);
+    
+    await uploadBytes(imageRef, file);
+    const downloadURL = await getDownloadURL(imageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error('Fehler beim Hochladen des Bildes:', error);
+    return null;
+  }
 };
 
 const addProduct = async () => {
@@ -141,6 +195,37 @@ const formatPrice = (price) => {
   return parseFloat(price).toFixed(2);
 };
 
+// Funktion zum Behandeln von Bild-Upload im neuen Produkt Formular
+const handleImageUpload = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const imageUrl = await uploadImage(file);
+    if (imageUrl) {
+      newProduct.value.imagepath = imageUrl;
+    }
+  }
+};
+
+// Funktion zum Behandeln von Bild-Upload im Bearbeiten Formular
+const handleEditImageUpload = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const imageUrl = await uploadImage(file);
+    if (imageUrl) {
+      editProductData.value.imagepath = imageUrl;
+    }
+  }
+};
+
+// Funktion zum Behandeln von Bildfehlern
+const handleImageError = (event) => {
+  event.target.style.display = 'none';
+  const placeholder = event.target.nextElementSibling;
+  if (placeholder && placeholder.classList.contains('produkt-image-placeholder')) {
+    placeholder.style.display = 'flex';
+  }
+};
+
 onMounted(() => {
   loadProdukte();
 });
@@ -194,6 +279,24 @@ onMounted(() => {
   border-radius: 6px;
   background: #fff;
   border: 1px solid #ccc;
+}
+.image-container {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.produkt-image-placeholder {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  color: #555;
+  font-size: 0.9em;
 }
 .produkt-info {
   flex: 1;

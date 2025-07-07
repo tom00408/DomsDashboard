@@ -1,13 +1,24 @@
 <template>
     <div class="bestellungen-container-new">
         <h2>Bestellungen</h2>
+        
+        <!-- Suchfeld -->
+        <div class="search-container">
+            <input 
+                v-model="searchQuery" 
+                type="text" 
+                placeholder="Nach Namen oder Bestellnummer suchen..." 
+                class="search-input"
+            />
+        </div>
+        
         <div class="filter-tabs">
             <button v-for="tab in filterTabs" :key="tab.value" @click="activeFilter = tab.value" :class="['filter-tab', { active: activeFilter === tab.value }]">
                 {{ tab.label }}
             </button>
         </div>
         <div v-if="filteredBestellungen.length === 0" class="keine-bestellungen-new">
-            Keine Bestellungen vorhanden
+            {{ searchQuery ? 'Keine Bestellungen gefunden' : 'Keine Bestellungen vorhanden' }}
         </div>
         <div class="bestellungen-list-new">
             <div v-for="bestellung in filteredBestellungen" :key="bestellung.id" class="bestellung-card" :class="'status-' + bestellung.status">
@@ -19,11 +30,12 @@
                             <option value="abgeschlossen">Abgeschlossen</option>
                         </select>
                     </div>
-                    <span class="bestell-id">#{{ bestellung.id }}</span>
+                    <span class="bestell-id">#{{ bestellung.orderNumber }}</span>
                 </div>
                 <div class="card-details">
                     <div><strong>Kunde:</strong> {{ bestellung.name }}</div>
                     <div><strong>Email:</strong> {{ bestellung.email }}</div>
+                    <div><strong>Telefon:</strong> {{ bestellung.telefon }}</div>
                     <div><strong>Team:</strong> {{ bestellung.team }}</div>
                     <div><strong>Datum:</strong> {{ formatDate(bestellung.createdAt.toDate()) }}</div>
                     <div><strong>Adresse:</strong> {{ bestellung.address }}</div>
@@ -92,7 +104,8 @@ const loadBestellungen = async () => {
                 name: data.name ? decryptData(data.name) : '',
                 team: data.team ? decryptData(data.team) : '',
                 address: data.address ? decryptData(data.address) : '',
-                email: data.email ? decryptData(data.email) : ''
+                email: data.email ? decryptData(data.email) : '',
+                telefonx: data.telefon ? decryptData(data.telefon) : ''
             };
         });
     } catch (error) {
@@ -154,9 +167,24 @@ const filterTabs = [
     { label: 'Abgeschlossen', value: 'abgeschlossen' }
 ];
 const activeFilter = ref('alle');
+const searchQuery = ref('');
+
 const filteredBestellungen = computed(() => {
-    if (activeFilter.value === 'alle') return bestellungen.value;
-    return bestellungen.value.filter(b => b.status === activeFilter.value);
+    let filtered = bestellungen.value;
+
+    if (activeFilter.value !== 'alle') {
+        filtered = filtered.filter(b => b.status === activeFilter.value);
+    }
+
+    if (searchQuery.value) {
+        const searchLower = searchQuery.value.toLowerCase();
+        filtered = filtered.filter(b => 
+            b.name.toLowerCase().includes(searchLower) || 
+            b.orderNumber.toLowerCase().includes(searchLower)
+        );
+    }
+
+    return filtered;
 });
 
 function downloadPDF(bestellung) {
@@ -166,9 +194,7 @@ function downloadPDF(bestellung) {
     doc.text('Bestellung', 10, y);
     y += 10;
     doc.setFontSize(12);
-    doc.text(`Bestellnummer: ${bestellung.id}`, 10, y);
-    y += 8;
-    doc.text(`Status: ${bestellung.status}`, 10, y);
+    doc.text(`Bestellnummer: ${bestellung.orderNumber}-${bestellung.name}`, 10, y);
     y += 8;
     doc.text(`Kunde: ${bestellung.name}`, 10, y);
     y += 8;
@@ -197,14 +223,21 @@ function downloadPDF(bestellung) {
     });
     y += 6;
     doc.setFontSize(12);
-    doc.text(`Bezahlt: ${bestellung.bezahlt ? 'Ja' : 'Nein'}`, 10, y);
-    doc.save(`Bestellung_${bestellung.id}.pdf`);
+    doc.text(`Bitte überweisen Sie den Betrag von  ${formatPrice(bestellung.total)}€ auf das folgende Konto:`, 10, y);
+    y += 8;
+    doc.text('Empfänger: FÖV MTV Geismar', 10, y);
+    y += 8;
+    doc.text('IBAN: DE75 2605 0001 0000 1743 00', 10, y);
+    y += 8;
+    doc.text('Bitte geben Sie Ihren Namen & Bestellnummer als Verwendungszweck an.', 10, y);
+    doc.save(`Bestellung_${bestellung.orderNumber}-${bestellung.name}.pdf`);
 }
 
 onMounted(() => {
     loadBestellungen();
 });
 </script>
+
 
 <style scoped>
 .bestellungen-container-new {
@@ -221,6 +254,26 @@ h2 {
     margin-bottom: 30px;
     font-size: 2.2em;
     font-weight: 700;
+}
+
+.search-container {
+    margin-bottom: 24px;
+    text-align: center;
+}
+.search-input {
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    font-size: 1em;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
 .filter-tabs {
@@ -393,6 +446,11 @@ h2 {
     h2 {
         font-size: 1.3em;
         margin-bottom: 18px;
+    }
+    .search-input {
+        width: 90%;
+        padding: 8px 12px;
+        font-size: 0.98em;
     }
     .filter-tabs {
         gap: 4px;
