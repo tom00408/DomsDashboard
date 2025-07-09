@@ -29,7 +29,8 @@ const props = defineProps({
 const navItems = [
   { key: 'dashboard', label: 'Mitgliedsanträge' },
   { key: 'bestellungen', label: 'Bestellungen' },
-  { key: 'produkte', label: 'Produkte' }
+  { key: 'produkte', label: 'Produkte' },
+  { key: 'rundschau', label: 'Rundschau' },
 ];
 </script>
 

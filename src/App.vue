@@ -12,6 +12,9 @@
             <div v-else-if="currentPage === 'produkte'" class="produkte-wrapper">
                 <Produkte />
             </div>
+            <div v-else-if="currentPage === 'rundschau'" class="rundschau-wrapper">
+                <Rundschau />
+            </div>
         </div>
         <div v-else>
             <img src="./assets/coolerkeiler.PNG" alt="" class="bigkeiler">
@@ -24,6 +27,7 @@ import AntragManager from './pages/AntragManager.vue';
 import Bestellungen from './pages/Bestellungen.vue';
 import Produkte from './pages/Produkte.vue';
 import HeaderBar from './components/HeaderBar.vue';
+import Rundschau from './pages/Rundschau.vue';
 import { ref } from 'vue';
 import { user } from './authState';
 
