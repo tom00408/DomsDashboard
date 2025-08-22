@@ -41,6 +41,7 @@
                     <div><strong>Adresse:</strong> {{ bestellung.address }}</div>
                     <div><strong>Menge:</strong> {{ getTotalItems(bestellung) }}</div>
                     <div><strong>Preis:</strong> {{ formatPrice(bestellung.total) }}€</div>
+                    <div><strong>Hinweis:</strong> {{ bestellung.hinweis }}</div>
                 </div>
                 <div class="card-items">
                     <h4>Artikel:</h4>
