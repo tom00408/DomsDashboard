@@ -6,6 +6,10 @@
             <div v-if="currentPage === 'dashboard'" class="dashboard-grid">
                 <AntragManager />
             </div>
+            <div v-else-if="currentPage === 'foev'" class="foev-wrapper">
+                <FoevAntraege />
+            </div>
+
             <div v-else-if="currentPage === 'bestellungen'" class="bestellungen-wrapper">
                 <Bestellungen />
             </div>
@@ -28,6 +32,7 @@ import Bestellungen from './pages/Bestellungen.vue';
 import Produkte from './pages/Produkte.vue';
 import HeaderBar from './components/HeaderBar.vue';
 import Rundschau from './pages/Rundschau.vue';
+import FoevAntraege from './pages/FoevAntraege.vue';
 import { ref } from 'vue';
 import { user } from './authState';
 
@@ -43,6 +48,10 @@ const currentPage = ref('dashboard');
 
 .hstack {
 	align-items: flex-start;
+}
+
+.foev-wrapper {
+    width: 100vw;
 }
 
 </style>

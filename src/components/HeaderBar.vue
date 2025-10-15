@@ -28,6 +28,7 @@ const props = defineProps({
 });
 const navItems = [
   { key: 'dashboard', label: 'Mitgliedsanträge' },
+  { key: 'foev', label: 'Foev Anträge' },
   { key: 'bestellungen', label: 'Bestellungen' },
   { key: 'produkte', label: 'Produkte' },
   { key: 'rundschau', label: 'Rundschau' },
