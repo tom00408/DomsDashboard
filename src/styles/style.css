@@ -28,7 +28,7 @@ body {
 	align-items: stretch;
 	justify-content: stretch;
 	background: var(--color-background-gradient);
-	padding: 32px;
+	padding: 24px;
 }
 
 @media (max-width: 960px) {

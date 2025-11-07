@@ -1,0 +1,94 @@
+:root {
+	--color-contrast-dark: #000000;
+	--color-contrast-light: #ffffff;
+	--color-logo-red: #da251d;
+	--color-mid-red: #9c0e0e;
+	--color-dark-red: #541320;
+	--color-accent-gray: #dddada;
+	--color-transparent: transparent;
+
+	--color-background: color-mix(
+		in srgb,
+		var(--color-accent-gray) 45%,
+		var(--color-contrast-light)
+	);
+	--color-background-gradient: linear-gradient(
+		160deg,
+		color-mix(in srgb, var(--color-dark-red) 65%, var(--color-contrast-dark) 35%),
+		color-mix(in srgb, var(--color-mid-red) 60%, var(--color-logo-red) 40%)
+	);
+	--color-surface: color-mix(
+		in srgb,
+		var(--color-contrast-light) 92%,
+		var(--color-accent-gray)
+	);
+	--color-surface-elevated: color-mix(
+		in srgb,
+		var(--color-contrast-light) 85%,
+		var(--color-accent-gray) 15%
+	);
+	--color-text-primary: color-mix(
+		in srgb,
+		var(--color-contrast-dark) 88%,
+		var(--color-mid-red) 12%
+	);
+	--color-text-secondary: color-mix(
+		in srgb,
+		var(--color-contrast-dark) 60%,
+		var(--color-accent-gray) 40%
+	);
+	--color-border: color-mix(
+		in srgb,
+		var(--color-accent-gray) 75%,
+		var(--color-contrast-light) 25%
+	);
+	--color-sidebar-background: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--color-dark-red) 85%, var(--color-contrast-dark) 15%),
+		color-mix(in srgb, var(--color-mid-red) 70%, var(--color-logo-red) 30%)
+	);
+	--color-sidebar-text: color-mix(
+		in srgb,
+		var(--color-contrast-light) 88%,
+		var(--color-accent-gray) 12%
+	);
+	--color-sidebar-text-muted: color-mix(
+		in srgb,
+		var(--color-contrast-light) 60%,
+		var(--color-accent-gray) 40%
+	);
+	--color-sidebar-active: color-mix(
+		in srgb,
+		var(--color-logo-red) 70%,
+		var(--color-contrast-light) 30%
+	);
+	--color-highlight: color-mix(
+		in srgb,
+		var(--color-logo-red) 55%,
+		var(--color-mid-red) 45%
+	);
+	--color-glass: color-mix(
+		in srgb,
+		var(--color-accent-gray) 35%,
+		var(--color-contrast-light) 65%
+	);
+
+	--shadow-soft: 0 22px 60px -24px
+		color-mix(in srgb, var(--color-dark-red) 25%, var(--color-transparent));
+	--shadow-inner: inset 0 1px 0
+		color-mix(in srgb, var(--color-contrast-light) 15%, var(--color-transparent));
+
+	--border-radius-lg: 26px;
+	--border-radius-md: 18px;
+	--border-radius-sm: 12px;
+
+	--transition-default: 220ms cubic-bezier(0.4, 0.0, 0.2, 1);
+	--transition-slow: 650ms cubic-bezier(0.22, 1, 0.36, 1);
+
+	--font-family-base: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+	--font-weight-regular: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+}
+
