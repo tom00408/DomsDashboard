@@ -1,10 +1,7 @@
 <template>
 	<section class="analytics-view">
 		<header class="analytics-header">
-			<div>
 				<h2>Shop Analytics</h2>
-				<p>Umfassende Einblicke in Verkaufsdaten und Bestellungen</p>
-			</div>
 			<div class="time-filter">
 				<button
 					v-for="period in timePeriods"

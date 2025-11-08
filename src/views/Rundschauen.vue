@@ -1,110 +1,110 @@
 <template>
-    
-      <div class="header-section">
-        <h2>Rundschau Upload</h2>
+  <div class="rundschauen-view">
+    <div class="header-section">
+      <h2>Rundschau Upload</h2>
+    </div>
+
+    <form @submit.prevent="uploadRundschau" class="upload-form">
+      <div class="form-group">
+        <label for="year">Jahr der Rundschau:</label>
+        <input 
+          id="year"
+          v-model="rundschauData.year" 
+          type="number" 
+          placeholder="z.B. 2024" 
+          required 
+        />
       </div>
-  
-      <form @submit.prevent="uploadRundschau" class="upload-form">
-        <div class="form-group">
-          <label for="year">Jahr der Rundschau:</label>
+
+      <div class="form-group">
+        <label for="number">Ausgabe:</label>
+        <select
+          id="number"
+          v-model="rundschauData.number"
+          required
+        >
+          <option value="01">01</option>
+          <option value="02">02</option>
+          <option value="03">03</option>
+          <option value="04">04</option>
+        </select>
+      </div>
+
+      <div class="file-upload-section">
+        <div class="file-group">
+          <label for="pdfFile">PDF-Datei auswählen:</label>
           <input 
-            id="year"
-            v-model="rundschauData.year" 
-            type="number" 
-            placeholder="z.B. 2024" 
-            required 
-          />
-        </div>
-  
-        <div class="form-group">
-          <label for="number">Ausgabe:</label>
-          <select
-            id="number"
-            v-model="rundschauData.number"
+            id="pdfFile"
+            type="file" 
+            @change="handlePdfUpload" 
+            accept=".pdf"
             required
-          >
-            <option value="01">01</option>
-            <option value="02">02</option>
-            <option value="03">03</option>
-            <option value="04">04</option>
-          </select>
-        </div>
-  
-        <div class="file-upload-section">
-          <div class="file-group">
-            <label for="pdfFile">PDF-Datei auswählen:</label>
-            <input 
-              id="pdfFile"
-              type="file" 
-              @change="handlePdfUpload" 
-              accept=".pdf"
-              required
-            />
-            <div v-if="selectedPdf" class="file-info">
-              <span>✅ {{ selectedPdf.name }}</span>
-              <span class="file-size">({{ formatFileSize(selectedPdf.size) }})</span>
-            </div>
-          </div>
-  
-          <div class="file-group">
-            <label for="imageFile">Cover auswählen:</label>
-            <input 
-              id="imageFile"
-              type="file" 
-              @change="handleImageUpload" 
-              accept=".png"
-              required
-            />
-            <div v-if="selectedImage" class="file-info">
-              <span>✅ {{ selectedImage.name }}</span>
-              <span class="file-size">({{ formatFileSize(selectedImage.size) }})</span>
-            </div>
+          />
+          <div v-if="selectedPdf" class="file-info">
+            <span>✅ {{ selectedPdf.name }}</span>
+            <span class="file-size">({{ formatFileSize(selectedPdf.size) }})</span>
           </div>
         </div>
-  
-        <div class="preview-section" v-if="imagePreview">
-          <h4>Bildvorschau:</h4>
-          <img :src="imagePreview" alt="Vorschau" class="image-preview" />
+
+        <div class="file-group">
+          <label for="imageFile">Cover auswählen:</label>
+          <input 
+            id="imageFile"
+            type="file" 
+            @change="handleImageUpload" 
+            accept=".png"
+            required
+          />
+          <div v-if="selectedImage" class="file-info">
+            <span>✅ {{ selectedImage.name }}</span>
+            <span class="file-size">({{ formatFileSize(selectedImage.size) }})</span>
+          </div>
         </div>
-  
-        <div class="upload-actions">
-          <button type="submit" :disabled="isUploading" class="upload-btn">
-            <span v-if="isUploading">📤 Wird hochgeladen...</span>
-            <span v-else>📤 Rundschau hochladen</span>
-          </button>
-          <button type="button" @click="resetForm" class="reset-btn">
-            🔄 Zurücksetzen
-          </button>
-        </div>
-      </form>
-  
-      <!-- Erfolgsmeldung -->
-      <div v-if="uploadSuccess" class="success-message">
-        <h3>✅ Rundschau erfolgreich hochgeladen!</h3>
-        <p>Die Dateien wurden in Firebase Storage gespeichert.</p>
-        <button @click="uploadSuccess = false" class="close-btn">Schließen</button>
       </div>
-  
-      <!-- Fehlermeldung -->
-      <div v-if="uploadError" class="error-message">
-        <h3>❌ Fehler beim Hochladen</h3>
-        <p>{{ uploadError }}</p>
-        <button @click="uploadError = ''" class="close-btn">Schließen</button>
+
+      <div class="preview-section" v-if="imagePreview">
+        <h4>Bildvorschau:</h4>
+        <img :src="imagePreview" alt="Vorschau" class="image-preview" />
       </div>
-  
-            <div class="rundschau-list">
-          <h3>Hochgeladene Rundschauen</h3>
-  
-          
-            <a href="https://rundschau.mtvgeismar.de" target="_blank" class="rundschau-link">
-              <button class="rundschau-btn">
-                <span class="btn-icon">📰</span>
-                <span class="btn-text">Rundschauen anzeigen</span>
-                <span class="btn-arrow">→</span>
-              </button>
-            </a>
-        </div>
-  </template>
+
+      <div class="upload-actions">
+        <button type="submit" :disabled="isUploading" class="upload-btn">
+          <span v-if="isUploading">📤 Wird hochgeladen...</span>
+          <span v-else>📤 Rundschau hochladen</span>
+        </button>
+        <button type="button" @click="resetForm" class="reset-btn">
+          🔄 Zurücksetzen
+        </button>
+      </div>
+    </form>
+
+    <!-- Erfolgsmeldung -->
+    <div v-if="uploadSuccess" class="success-message">
+      <h3>✅ Rundschau erfolgreich hochgeladen!</h3>
+      <p>Die Dateien wurden in Firebase Storage gespeichert.</p>
+      <button @click="uploadSuccess = false" class="close-btn">Schließen</button>
+    </div>
+
+    <!-- Fehlermeldung -->
+    <div v-if="uploadError" class="error-message">
+      <h3>❌ Fehler beim Hochladen</h3>
+      <p>{{ uploadError }}</p>
+      <button @click="uploadError = ''" class="close-btn">Schließen</button>
+    </div>
+
+    <div class="rundschau-list">
+      <h3>Hochgeladene Rundschauen</h3>
+
+      <a href="https://rundschau.mtvgeismar.de" target="_blank" class="rundschau-link">
+        <button class="rundschau-btn">
+          <span class="btn-icon">📰</span>
+          <span class="btn-text">Rundschauen anzeigen</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </a>
+    </div>
+  </div>
+</template>
   
   <script setup>
   import { ref, onMounted } from 'vue';
@@ -237,7 +237,9 @@
   </script>
   
   <style scoped>
-
+  .rundschauen-view {
+    width: 100%;
+  }
   
   .header-section {
     text-align: center;
