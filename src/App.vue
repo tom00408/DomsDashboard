@@ -58,10 +58,10 @@ const handleLogout = async () => {
 	max-width: 1380px;
 	width: 100%;
 	margin: 0 auto;
-	height: calc(100dvh - 48px);
-	max-height: calc(100dvh - 48px);
 	min-height: calc(100dvh - 48px);
-	overflow: hidden;
+	height: auto;
+	max-height: none;
+	overflow: visible;
 	align-items: stretch;
 }
 
@@ -71,24 +71,16 @@ const handleLogout = async () => {
 	padding: 28px 30px;
 	background: var(--color-surface);
 	border-radius: var(--border-radius-lg);
-	box-shadow: var(--shadow-soft);
-	backdrop-filter: blur(8px);
 	border: 1px solid var(--color-border);
 	position: relative;
-	overflow: hidden;
-	overflow-y: auto;
-	scrollbar-gutter: stable both-edges;
+	overflow: visible;
 }
 
 .content::before {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background: radial-gradient(
-		120% 120% at 20% 10%,
-		color-mix(in srgb, var(--color-highlight) 18%, var(--color-transparent)) 0%,
-		var(--color-transparent) 70%
-	);
+	
 	pointer-events: none;
 }
 
@@ -168,7 +160,6 @@ const handleLogout = async () => {
 @media (max-width: 1180px) {
 	.shell {
 		grid-template-columns: minmax(0, 1fr);
-		height: calc(100dvh - 48px);
 		max-height: none;
 	}
 
@@ -178,10 +169,6 @@ const handleLogout = async () => {
 }
 
 @media (max-width: 960px) {
-	.shell {
-		height: calc(100dvh - 32px);
-	}
-
 	.content {
 		padding: 24px;
 	}
@@ -190,7 +177,6 @@ const handleLogout = async () => {
 @media (max-width: 768px) {
 	.shell {
 		gap: 20px;
-		height: calc(100dvh - 32px);
 	}
 
 	.content {

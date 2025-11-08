@@ -14,12 +14,24 @@
 				<span class="nav-link-label">Mitgliedsanträge</span>
 				<span class="nav-link-accent" aria-hidden="true" />
 			</RouterLink>
+            <RouterLink to="/foev-antraege" class="nav-link">
+                <span class="nav-link-label">FÖV Mitgliedsanträge</span>
+                <span class="nav-link-accent" aria-hidden="true" />
+            </RouterLink>
 			<RouterLink to="/bestellungen" class="nav-link">
 				<span class="nav-link-label">Bestellungen</span>
 				<span class="nav-link-accent" aria-hidden="true" />
 			</RouterLink>
 			<RouterLink to="/produkte" class="nav-link">
 				<span class="nav-link-label">Produkte</span>
+				<span class="nav-link-accent" aria-hidden="true" />
+			</RouterLink>
+			<RouterLink to="/shop-analytics" class="nav-link">
+				<span class="nav-link-label">Shop Analytics</span>
+				<span class="nav-link-accent" aria-hidden="true" />
+			</RouterLink>
+			<RouterLink to="/rundschauen" class="nav-link">
+				<span class="nav-link-label">Rundschauen</span>
 				<span class="nav-link-accent" aria-hidden="true" />
 			</RouterLink>
 		</nav>

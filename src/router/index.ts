@@ -22,6 +22,21 @@ const router = createRouter({
 			name: 'Produkte',
 			component: () => import('../views/ProdukteView.vue'),
 		},
+		{
+			path: '/foev-antraege',
+			name: 'FoevAntraege',
+			component: () => import('../views/FoevAntraege.vue'),
+		},
+		{
+			path: '/rundschauen',
+			name: 'Rundschauen',
+			component: () => import('../views/Rundschauen.vue'),
+		},
+		{
+			path: '/shop-analytics',
+			name: 'ShopAnalytics',
+			component: () => import('../views/ShopAnalytics.vue'),
+		},
 	],
 });
 
