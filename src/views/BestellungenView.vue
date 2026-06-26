@@ -17,6 +17,12 @@
                 {{ tab.label }}
             </button>
         </div>
+        <div class="bezahlt-filter">
+            <label class="bezahlt-filter-label">
+                <input type="checkbox" v-model="nurNichtBezahlt" />
+                <span>Nur nicht bezahlte Bestellungen anzeigen</span>
+            </label>
+        </div>
         <div v-if="filteredBestellungen.length === 0" class="keine-bestellungen-new">
             {{ searchQuery ? 'Keine Bestellungen gefunden' : 'Keine Bestellungen vorhanden' }}
         </div>
@@ -228,12 +234,17 @@ const filterTabs = computed(() => [
 ]);
 const activeFilter = ref('alle');
 const searchQuery = ref('');
+const nurNichtBezahlt = ref(false);
 
 const filteredBestellungen = computed(() => {
     let filtered = bestellungen.value;
 
     if (activeFilter.value !== 'alle') {
         filtered = filtered.filter(b => b.status === activeFilter.value);
+    }
+
+    if (nurNichtBezahlt.value) {
+        filtered = filtered.filter(b => !b.bezahlt);
     }
 
     if (searchQuery.value) {
@@ -360,6 +371,26 @@ h2 {
 .filter-tab.active {
     background: #4caf50;
     color: #fff;
+}
+
+.bezahlt-filter {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+.bezahlt-filter-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 1.02em;
+    font-weight: 500;
+    user-select: none;
+}
+.bezahlt-filter-label input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
 }
 
 .keine-bestellungen-new {
