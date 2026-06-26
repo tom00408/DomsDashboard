@@ -54,24 +54,25 @@ const handleLogout = async () => {
 	flex: 1 1 auto;
 	display: grid;
 	grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
-	gap: 24px;
-	max-width: 1380px;
+	gap: 0;
+	max-width: 100%;
 	width: 100%;
-	margin: 0 auto;
-	min-height: calc(100dvh - 48px);
+	margin: 0;
+	min-height: 100dvh;
 	height: auto;
 	max-height: none;
 	overflow: visible;
 	align-items: stretch;
+	justify-content: stretch;
 }
 
 .content {
 	display: flex;
 	flex-direction: column;
 	padding: 28px 30px;
-	background: var(--color-surface);
-	border-radius: var(--border-radius-lg);
-	border: 1px solid var(--color-border);
+	background: transparent;
+	border-radius: 0;
+	border: none;
 	position: relative;
 	overflow: visible;
 }

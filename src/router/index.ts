@@ -37,6 +37,11 @@ const router = createRouter({
 			name: 'ShopAnalytics',
 			component: () => import('../views/ShopAnalytics.vue'),
 		},
+		{
+			path: '/einstellungen',
+			name: 'Einstellungen',
+			component: () => import('../views/EinstellungenView.vue'),
+		},
 	],
 });
 

@@ -34,6 +34,10 @@
 				<span class="nav-link-label">Rundschauen</span>
 				<span class="nav-link-accent" aria-hidden="true" />
 			</RouterLink>
+			<RouterLink to="/einstellungen" class="nav-link">
+				<span class="nav-link-label">Einstellungen</span>
+				<span class="nav-link-accent" aria-hidden="true" />
+			</RouterLink>
 		</nav>
 		<footer class="sidebar-footer" v-if="currentUser">
 			<div class="sidebar-user">
@@ -48,6 +52,7 @@
 					<span class="dot" />
 				</span>
 			</button>
+			v1.0.0
 		</footer>
 	</aside>
 </template>
@@ -92,12 +97,12 @@ const emitLogout = () => {
 	padding: 32px 28px 24px;
 	background: var(--color-sidebar-background);
 	color: var(--color-sidebar-text);
-	border-radius: var(--border-radius-lg);
-	box-shadow: var(--shadow-soft);
+	border-radius: 0;
+	box-shadow: none;
 	position: sticky;
-	top: 24px;
-	height: calc(100dvh - 48px);
-	max-height: calc(100dvh - 48px);
+	top: 0;
+	height: 100dvh;
+	max-height: 100dvh;
 	overflow: hidden;
 }
 
@@ -201,7 +206,7 @@ const emitLogout = () => {
 
 .nav-link:hover,
 .nav-link:focus-visible {
-	transform: translateX(6px);
+	transform: translateX(-6px);
 	background: color-mix(
 		in srgb,
 		var(--color-highlight) 50%,

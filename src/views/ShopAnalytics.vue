@@ -178,6 +178,7 @@
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import { collection, getDocs, query, orderBy, where, Timestamp } from 'firebase/firestore';
 import { db } from '../service/firebase';
+import { getOrderStatusLabel } from '../service/settingsService';
 import {
 	Chart,
 	CategoryScale,
@@ -363,11 +364,13 @@ const statusBreakdown = computed(() => {
 		statuses[b.status] = (statuses[b.status] || 0) + 1;
 	});
 
-	const statusLabels: Record<string, string> = {
-		neu: 'Neu',
-		in_bearbeitung: 'In Bearbeitung',
-		abgeschlossen: 'Abgeschlossen',
-	};
+	// Labels inkl. Custom-Status über settingsService
+	const statusLabels: Record<string, string> = {};
+	filteredBestellungen.value.forEach((b) => {
+		if (b.status && !statusLabels[b.status]) {
+			statusLabels[b.status] = getOrderStatusLabel(b.status);
+		}
+	});
 
 	const colors: Record<string, string> = {
 		neu: '#b40024',

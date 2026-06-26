@@ -28,13 +28,7 @@ body {
 	align-items: stretch;
 	justify-content: stretch;
 	background: var(--color-background-gradient);
-	padding: 32px;
-}
-
-@media (max-width: 960px) {
-	#app {
-		padding: 16px;
-	}
+	padding: 0;
 }
 
 ::selection {

@@ -25,9 +25,7 @@
                 <div class="card-header">
                     <div class="status-dropdown">
                         <select v-model="bestellung.status" @change="updateStatus(bestellung.id, bestellung.status)">
-                            <option value="neu">Neu</option>
-                            <option value="in_bearbeitung">In Bearbeitung</option>
-                            <option value="abgeschlossen">Abgeschlossen</option>
+                            <option v-for="s in orderStatuses" :key="s" :value="s">{{ getOrderStatusLabel(s) }}</option>
                         </select>
                     </div>
                     <span class="bestell-id">#{{ bestellung.orderNumber }}</span>
@@ -66,6 +64,24 @@
                             {{ bestellung.bezahlt ? 'Bezahlt' : 'Nicht bezahlt' }}
                         </span>
                     </label>
+                    <button
+                        type="button"
+                        class="email-btn email-bestellt"
+                        :disabled="!bestellung.email || emailSending === bestellung.id"
+                        :title="bestellung.email ? 'E-Mail: Wir haben deine Sachen bestellt' : 'Keine E-Mail-Adresse'"
+                        @click="sendBestelltEmail(bestellung)"
+                    >
+                        {{ emailSending === bestellung.id ? '…' : 'E-Mail: Bestellt' }}
+                    </button>
+                    <button
+                        type="button"
+                        class="email-btn email-angekommen"
+                        :disabled="!bestellung.email || emailSending === bestellung.id"
+                        :title="bestellung.email ? 'E-Mail: Deine Sachen sind da' : 'Keine E-Mail-Adresse'"
+                        @click="sendAngekommenEmail(bestellung)"
+                    >
+                        {{ emailSending === bestellung.id ? '…' : 'E-Mail: Sachen da' }}
+                    </button>
                     <button @click="downloadPDF(bestellung)" class="pdf-btn">PDF herunterladen</button>
                     <button @click="deleteBestellung(bestellung.id)" class="delete-btn-new">Löschen</button>
                 </div>
@@ -77,11 +93,18 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../service/firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../service/firebase';
+import { getCustomStatuses, getFullOrderStatuses, getOrderStatusLabel } from '../service/settingsService';
 import CryptoJS from 'crypto-js';
 import jsPDF from 'jspdf';
 
+const orderBestelltEmailFn = httpsCallable(functions, 'orderBestelltEmail');
+const orderAngekommenEmailFn = httpsCallable(functions, 'orderAngekommenEmail');
+
 const bestellungen = ref([]);
+const emailSending = ref(null);
+const customStatuses = ref({ order: [], mitgliedsantrag: [], foevMitgliedsantrag: [] });
 const encryptionKey = import.meta.env.VITE_BESTELLUNGEN_KEY;
 
 
@@ -152,6 +175,42 @@ const toggleBezahlt = async (bestellungId) => {
     }
 };
 
+const sendBestelltEmail = async (bestellung) => {
+    if (!bestellung?.email?.trim()) {
+        alert('Keine E-Mail-Adresse für diese Bestellung.');
+        return;
+    }
+    emailSending.value = bestellung.id;
+    try {
+        const result = await orderBestelltEmailFn({ to: bestellung.email.trim(), name: bestellung.name || 'Kunde' });
+        const data = result.data;
+        if (data?.info) alert(data.info);
+    } catch (error) {
+        console.error('E-Mail „Bestellt“ fehlgeschlagen:', error);
+        alert(error?.message || 'E-Mail konnte nicht gesendet werden.');
+    } finally {
+        emailSending.value = null;
+    }
+};
+
+const sendAngekommenEmail = async (bestellung) => {
+    if (!bestellung?.email?.trim()) {
+        alert('Keine E-Mail-Adresse für diese Bestellung.');
+        return;
+    }
+    emailSending.value = bestellung.id;
+    try {
+        const result = await orderAngekommenEmailFn({ to: bestellung.email.trim(), name: bestellung.name || 'Kunde' });
+        const data = result.data;
+        if (data?.info) alert(data.info);
+    } catch (error) {
+        console.error('E-Mail „Sachen da“ fehlgeschlagen:', error);
+        alert(error?.message || 'E-Mail konnte nicht gesendet werden.');
+    } finally {
+        emailSending.value = null;
+    }
+};
+
 const formatDate = (date) => {
     if (!date) return '';
     const d = new Date(date);
@@ -162,12 +221,11 @@ const formatPrice = (price) => {
     return parseFloat(price).toFixed(2);
 };
 
-const filterTabs = [
+const orderStatuses = computed(() => getFullOrderStatuses(customStatuses.value));
+const filterTabs = computed(() => [
     { label: 'Alle', value: 'alle' },
-    { label: 'Neu', value: 'neu' },
-    { label: 'In Bearbeitung', value: 'in_bearbeitung' },
-    { label: 'Abgeschlossen', value: 'abgeschlossen' }
-];
+    ...orderStatuses.value.map((s) => ({ label: getOrderStatusLabel(s), value: s }))
+]);
 const activeFilter = ref('alle');
 const searchQuery = ref('');
 
@@ -235,7 +293,12 @@ function downloadPDF(bestellung) {
     doc.save(`Bestellung_${bestellung.orderNumber}-${bestellung.name}.pdf`);
 }
 
-onMounted(() => {
+onMounted(async () => {
+    try {
+        customStatuses.value = await getCustomStatuses();
+    } catch (e) {
+        console.error('Einstellungen (Custom-Status) laden fehlgeschlagen', e);
+    }
     loadBestellungen();
 });
 </script>
@@ -394,8 +457,9 @@ h2 {
 
 .card-actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-	justify-content: space-between;
+    gap: 8px;
     margin-top: 8px;
 }
 .custom-checkbox {
@@ -429,6 +493,32 @@ h2 {
     background: #f3f3f3;
     font-size: 0.95em;
     margin-top: 2px;
+}
+.email-btn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    font-size: 0.95em;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.email-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.email-bestellt {
+    background: #2e7d32;
+}
+.email-bestellt:hover:not(:disabled) {
+    background: #1b5e20;
+}
+.email-angekommen {
+    background: #1565c0;
+}
+.email-angekommen:hover:not(:disabled) {
+    background: #0d47a1;
 }
 .pdf-btn {
     padding: 8px 18px;
@@ -524,7 +614,7 @@ h2 {
         font-size: 0.98em;
         gap: 4px;
     }
-    .pdf-btn, .delete-btn-new {
+    .pdf-btn, .delete-btn-new, .email-btn {
         width: 100%;
         font-size: 0.98em;
         padding: 7px 0;

@@ -1,0 +1,21 @@
+# Wichtig: Echte Dateien direkt ausliefern, nicht an PHP/Handler weiterleiten
+# Verhindert 500-Fehler für /assets/*.js, /assets/*.css, favicon.ico etc.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  # Existierende Dateien direkt ausliefern
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+  # Existierende Ordner direkt ausliefern
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  # SPA: alles andere auf index.html (Vue Router)
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Nach Deploy sofort neue Version anzeigen (kein Cache für HTML)
+<FilesMatch "\.(html)$">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires 0
+</FilesMatch>

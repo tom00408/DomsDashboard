@@ -7,12 +7,12 @@
 					<span class="stat-label">Gesamt</span>
 				</div>
 				<div class="stat-card">
-					<span class="stat-number">{{ getStatusCount('new') }}</span>
-					<span class="stat-label">Neu</span>
+					<span class="stat-number">{{ getStatusCount('selected') }}</span>
+					<span class="stat-label">Ausgewählt</span>
 				</div>
 				<div class="stat-card">
-					<span class="stat-number">{{ getStatusCount('processing') }}</span>
-					<span class="stat-label">In Bearbeitung</span>
+					<span class="stat-number">{{ getStatusCount('new') }}</span>
+					<span class="stat-label">Neu</span>
 				</div>
 				<div class="stat-card">
 					<span class="stat-number">{{ getStatusCount('archived') }}</span>
@@ -20,6 +20,15 @@
 				</div>
 			</div>
 			<div class="header-actions">
+				<button 
+					@click="toggleStatusHighlight" 
+					class="highlight-toggle-btn"
+					:class="{ active: statusHighlightMode }"
+					:disabled="loading || !secretAvailable"
+					title="Status-Hervorhebung umschalten"
+				>
+					{{ statusHighlightMode ? '🎨 Deutlich' : '🎨 Dezent' }}
+				</button>
 				<button @click="refreshData" class="refresh-btn" :disabled="loading || !secretAvailable">
 					{{ loading ? 'Lädt…' : 'Aktualisieren' }}
 				</button>
@@ -101,7 +110,7 @@
 							<tr
 								v-for="antrag in filteredAntraege"
 								:key="antrag.id"
-								:class="getRowClass(antrag.status)"
+								:class="[getRowClass(antrag.status), { 'highlight-mode': statusHighlightMode }]"
 							>
 								<td class="status-cell">
 									<select
@@ -211,6 +220,12 @@ import { computed, onMounted, ref } from 'vue';
 import CryptoJS from 'crypto-js';
 import { collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../service/firebase';
+import {
+	getCustomStatuses,
+	getFullMitgliedsantragStatuses,
+	getMitgliedsantragStatusLabel,
+	type CustomStatusesData,
+} from '../service/settingsService';
 
 type AntragStatus =
 	| 'open'
@@ -307,7 +322,7 @@ type EditableField = (typeof editableFields)[number];
 
 const dateFields: readonly EncryptedField[] = ['datum', 'beginn', 'geburtsdatum'] as const;
 
-const baseStatusOptions: AntragStatus[] = ['open', 'processing', 'archived', 'new'];
+const customStatuses = ref<CustomStatusesData>({ order: [], mitgliedsantrag: [], foevMitgliedsantrag: [] });
 
 interface ColumnDef {
 	key: keyof Mitgliedsantrag;
@@ -375,11 +390,13 @@ const loading = ref(false);
 const searchTerm = ref('');
 const statusFilter = ref<AntragStatus | ''>('');
 const errorMessage = ref<string | null>(null);
+const statusHighlightMode = ref(false);
 
 const normalizedSearch = (value?: string) => value?.toLowerCase() ?? '';
 
 const statusOptions = computed<AntragStatus[]>(() => {
-	const set = new Set<AntragStatus>(baseStatusOptions);
+	const full = getFullMitgliedsantragStatuses(customStatuses.value);
+	const set = new Set<AntragStatus>(full);
 	antraege.value.forEach((antrag) => {
 		if (antrag.status) {
 			set.add(antrag.status);
@@ -416,7 +433,7 @@ const formatDate = (value?: string) => {
 const normalizeAntrag = (id: string, data: Record<string, unknown>): Mitgliedsantrag => {
 	const result: Mitgliedsantrag = {
 		id,
-		status: typeof data.status === 'string' ? (data.status as AntragStatus) : 'open',
+		status: typeof data.status === 'string' ? (data.status as AntragStatus) : 'new',
 	};
 
 	encryptedFields.forEach((field) => {
@@ -592,25 +609,7 @@ const exportToCSV = (
 const getStatusCount = (status: AntragStatus) =>
 	antraege.value.filter((antrag) => antrag.status === status).length;
 
-const statusLabel = (status: AntragStatus) => {
-	const normalized = status.toLowerCase();
-	switch (normalized) {
-		case 'open':
-			return 'Offen';
-		case 'processing':
-			return 'In Bearbeitung';
-		case 'archived':
-			return 'Archiviert';
-		case 'new':
-			return 'Neu';
-		case 'approved':
-			return 'Genehmigt';
-		case 'rejected':
-			return 'Abgelehnt';
-		default:
-			return status.charAt(0).toUpperCase() + status.slice(1);
-	}
-};
+const statusLabel = (status: AntragStatus) => getMitgliedsantragStatusLabel(status);
 
 const getRowClass = (status: AntragStatus) => `status-${status}`;
 
@@ -642,7 +641,16 @@ const cancelAdvancedExport = () => {
 	exportModalOpen.value = false;
 };
 
-onMounted(() => {
+const toggleStatusHighlight = () => {
+	statusHighlightMode.value = !statusHighlightMode.value;
+};
+
+onMounted(async () => {
+	try {
+		customStatuses.value = await getCustomStatuses();
+	} catch (e) {
+		console.error('Einstellungen (Custom-Status) laden fehlgeschlagen', e);
+	}
 	if (secretAvailable) {
 		void loadAntraege();
 	}
@@ -714,6 +722,7 @@ onMounted(() => {
 	align-items: center;
 }
 
+.highlight-toggle-btn,
 .refresh-btn,
 .export-btn {
 	padding: 10px 18px;
@@ -725,6 +734,45 @@ onMounted(() => {
 	letter-spacing: 0.05em;
 	transition: transform var(--transition-default), box-shadow var(--transition-default),
 		opacity var(--transition-default);
+}
+
+.highlight-toggle-btn {
+	background: color-mix(
+		in srgb,
+		var(--color-contrast-light) 15%,
+		var(--color-transparent) 85%
+	);
+	color: var(--color-contrast-light);
+	border: 1px solid
+		color-mix(in srgb, var(--color-contrast-light) 40%, var(--color-transparent) 60%);
+}
+
+.highlight-toggle-btn.active {
+	background: color-mix(
+		in srgb,
+		var(--color-contrast-light) 25%,
+		var(--color-transparent) 75%
+	);
+	border-color: color-mix(
+		in srgb,
+		var(--color-contrast-light) 60%,
+		var(--color-transparent) 40%
+	);
+}
+
+.highlight-toggle-btn:hover:not(:disabled) {
+	background: color-mix(
+		in srgb,
+		var(--color-contrast-light) 30%,
+		var(--color-transparent) 70%
+	);
+}
+
+.highlight-toggle-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
 }
 
 .refresh-btn {
@@ -1259,29 +1307,69 @@ onMounted(() => {
 	);
 }
 
-.status-open {
-	border-left: 4px solid color-mix(
-		in srgb,
-		var(--color-logo-red) 65%,
-		var(--color-contrast-light) 35%
-	);
-}
-
-.status-processing {
-	border-left: 4px solid orange;
+/* Dezent-Modus (Standard): Nur linker Rand */
+.status-selected {
+	border-left: 4px solid var(--color-status-open);
 }
 
 .status-archived {
-	border-left: 4px solid color-mix(
-		in srgb,
-		var(--color-accent-gray) 70%,
-		var(--color-contrast-dark) 30%
-	);
+	border-left: 4px solid var(--color-status-archived);
 	opacity: 0.85;
 }
 
 .status-new {
-	border-left: 4px solid blue;
+	border-left: 4px solid var(--color-status-new);
+}
+
+/* Deutlich-Modus: Ganze Zeile mit Status-Farbe - deutlich dargestellt */
+.mitglied-table tbody tr.highlight-mode.status-selected {
+	border-left: none;
+	background: var(--color-status-open);
+	color: var(--color-contrast-light);
+}
+
+.mitglied-table tbody tr.highlight-mode.status-selected:hover {
+	background: var(--color-status-open);
+	filter: brightness(1.15);
+}
+
+.mitglied-table tbody tr.highlight-mode.status-selected:nth-child(even) {
+	background: var(--color-status-open);
+	filter: brightness(0.98);
+}
+
+.mitglied-table tbody tr.highlight-mode.status-new {
+	border-left: none;
+	background: var(--color-status-new);
+	color: var(--color-contrast-light);
+}
+
+.mitglied-table tbody tr.highlight-mode.status-new:hover {
+	background: var(--color-status-new);
+	filter: brightness(1.15);
+}
+
+.mitglied-table tbody tr.highlight-mode.status-new:nth-child(even) {
+	background: var(--color-status-new);
+	filter: brightness(0.98);
+}
+
+.mitglied-table tbody tr.highlight-mode.status-archived {
+	border-left: none;
+	background: var(--color-status-archived);
+	color: var(--color-contrast-light);
+	opacity: 0.95;
+}
+
+.mitglied-table tbody tr.highlight-mode.status-archived:hover {
+	background: var(--color-status-archived);
+	filter: brightness(1.15);
+	opacity: 1;
+}
+
+.mitglied-table tbody tr.highlight-mode.status-archived:nth-child(even) {
+	background: var(--color-status-archived);
+	filter: brightness(0.98);
 }
 
 

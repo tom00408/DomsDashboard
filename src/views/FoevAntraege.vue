@@ -50,10 +50,7 @@
           />
           <select v-model="statusFilter" class="status-filter">
             <option value="">Alle Status</option>
-            <option value="new">Neu</option>
-            <option value="in_progress">In Bearbeitung</option>
-            <option value="approved">Genehmigt</option>
-            <option value="rejected">Abgelehnt</option>
+            <option v-for="s in foevStatusOptions" :key="s" :value="s">{{ getFoevStatusLabel(s) }}</option>
           </select>
         </div>
       </div>
@@ -97,10 +94,7 @@
                   @change="onStatusChange(antrag.id, $event)"
                   class="status-select"
                 >
-                  <option value="new">Neu</option>
-                  <option value="in_progress">In Bearbeitung</option>
-                  <option value="approved">Genehmigt</option>
-                  <option value="rejected">Abgelehnt</option>
+                  <option v-for="s in foevStatusOptions" :key="s" :value="s">{{ getFoevStatusLabel(s) }}</option>
                 </select>
               </td>
               <td>{{ formatDate(antrag.datum) }}</td>
@@ -285,8 +279,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore'
 import { db } from '../service/firebase'
+import {
+  getCustomStatuses,
+  getFullFoevStatuses,
+  getFoevStatusLabel,
+  type CustomStatusesData,
+} from '../service/settingsService'
 
-type AntragStatus = 'new' | 'in_progress' | 'approved' | 'rejected'
+type AntragStatus = 'new' | 'in_progress' | 'approved' | 'rejected' | string
 
 type EditableField =
   | 'vorname'
@@ -359,6 +359,16 @@ const exportColumns = [
   { key: 'dsgvo', label: 'DSGVO' },
   { key: 'unterschrift', label: 'Unterschrift' },
 ] as const satisfies ReadonlyArray<ColumnDef>
+
+const customStatuses = ref<CustomStatusesData>({ order: [], mitgliedsantrag: [], foevMitgliedsantrag: [] })
+const foevStatusOptions = computed<string[]>(() => {
+  const full = getFullFoevStatuses(customStatuses.value)
+  const set = new Set(full)
+  antraege.value.forEach((a) => {
+    if (a.status) set.add(a.status)
+  })
+  return Array.from(set)
+})
 
 const antraege = ref<FoevAntrag[]>([])
 const loading = ref(false)
@@ -567,7 +577,12 @@ const cancelAdvancedExport = () => {
   exportModalOpen.value = false
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    customStatuses.value = await getCustomStatuses()
+  } catch (e) {
+    console.error('Einstellungen (Custom-Status) laden fehlgeschlagen', e)
+  }
   void loadAntraege()
 })
   </script>
@@ -579,6 +594,7 @@ onMounted(() => {
     background-color: #f5f5f5;
     min-height: 100vh;
     width: 100%;
+    border-radius: 24px;
   }
   
 .header-section {

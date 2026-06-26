@@ -90,5 +90,11 @@
 	--font-weight-medium: 500;
 	--font-weight-semibold: 600;
 	--font-weight-bold: 700;
+
+
+	--color-status-open: #3b82f6;
+	--color-status-processing: #f59e0b;
+	--color-status-archived: #8b5cf6;
+	--color-status-new: #ec4899;
 }
 
