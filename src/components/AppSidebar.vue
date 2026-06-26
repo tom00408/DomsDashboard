@@ -52,7 +52,7 @@
 					<span class="dot" />
 				</span>
 			</button>
-			v1.0.0
+			{{ appVersion }}
 		</footer>
 	</aside>
 </template>
@@ -81,6 +81,7 @@ const displayName = computed(
 
 const userEmail = computed(() => props.currentUser?.email ?? '');
 const isLoggingOut = computed(() => props.isLoggingOut === true);
+const appVersion = import.meta.env.VITE_APP_VERSION;
 
 const emitLogout = () => {
 	if (!isLoggingOut.value) {
