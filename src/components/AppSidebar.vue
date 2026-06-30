@@ -22,6 +22,10 @@
 				<span class="nav-link-label">Bestellungen</span>
 				<span class="nav-link-accent" aria-hidden="true" />
 			</RouterLink>
+			<RouterLink to="/widerrufe" class="nav-link">
+				<span class="nav-link-label">Widerrufe</span>
+				<span class="nav-link-accent" aria-hidden="true" />
+			</RouterLink>
 			<RouterLink to="/produkte" class="nav-link">
 				<span class="nav-link-label">Produkte</span>
 				<span class="nav-link-accent" aria-hidden="true" />
